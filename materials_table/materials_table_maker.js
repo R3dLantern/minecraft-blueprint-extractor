@@ -1,8 +1,5 @@
 /*jslint node:true*/
 'use strict';
-require('./ignored_blocks');
-require('./materials_data_map');
-
 module.exports = {
     /**
      * From a given Materials data map item, create a table row command for the Gamepedia source code.
@@ -20,19 +17,20 @@ module.exports = {
     getMaterialsListFromRawPalette: function (rawPaletteList) {
         var result = [],
             usedItems = [],
-            itemName,
+            item,
             i = 0;
     
         for (i; i < rawPaletteList.length; i += 1) {
-            /* We need to check some stuff and transform the data for each palette item. */
-            itemName = rawPaletteList[i].Name.value;
+            
+            // Simplify
+            item = rawPaletteList[i];
         
             // 1. The item must not be on the ignored list (we will ignore functional and redundant blocks, such as minecraft:air or minecraft:jigsaw)
-            if (global.ignoredBlocks.includes(itemName) || usedItems.includes(itemName)) {
+            if (global.ignoredBlocks.includes(item.Name) || usedItems.includes(item.Name)) {
                 continue;
             }
-            usedItems.push(itemName);
-            result.push(global.materialsDataMap[itemName]);
+            usedItems.push(item.Name);
+            result.push(global.materialsDataMap[item.Name]);
         }
     
         return result;

@@ -3,7 +3,8 @@ global.configuration = {
     file: undefined,
     f: undefined,
     output: "./output.txt",
-    o: "./output.txt"
+    o: "./output.txt",
+    v: false
 };
 
 /**
@@ -27,13 +28,15 @@ module.exports = {
         var configKeys = Object.keys(global.configuration),
             keys = Object.keys(givenArgs),
             i = 1;
-        console.log('Received arguments: ' + givenArgs);
         for (i; i < keys.length; i += 1) {
             if (configKeys.includes(keys[i])) {
-                console.log('Accepting argument ' + keys[i] + ' with value ' + givenArgs[keys[i]]);
                 global.configuration[keys[i]] = givenArgs[keys[i]];
             }
         }
         checkRequiredArguments();
+        if (global.configuration.v) {
+            console.log('Received Arguments:');
+            console.log(givenArgs);
+        }
     }
 };

@@ -15,6 +15,12 @@ global.materialsDataMap = {
         spriteType: 'BlockSprite',
         internalId: 'torch',
         link: 'Torch',
-        text: 'Torch'
+        text: 'Torch',
+        facing: {
+            north: '',
+            east: '-rot90',
+            south: '-rot180',
+            west: '-rot270'
+        }
     }
 };
