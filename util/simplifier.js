@@ -6,7 +6,7 @@
  */
 var simpliflyRecursive = function (obj, name) {
     'use strict';
-    var isVerbose = global.configuration.verbose,
+    var isVerbose = global.configuration.v,
         result = {},
         keys,
         i = 0,

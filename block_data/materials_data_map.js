@@ -1,9 +1,12 @@
 global.materialsDataMap = {
+    "minecraft:air": { ignoreState: true },
+    "minecraft:jigsaw": { ignoreState: true },
     "minecraft:oak_fence": {
         spriteType: 'BlockSprite',
         internalId: 'oak-fence',
         link: 'Fence',
-        text: 'Oak Fence'
+        text: 'Oak Fence',
+        ignoreProperties: true
     },
     "minecraft:stripped_oak_wood": {
         spriteType: 'BlockSprite',
@@ -16,11 +19,13 @@ global.materialsDataMap = {
         internalId: 'torch',
         link: 'Torch',
         text: 'Torch',
-        facing: {
-            north: '',
-            east: '-rot90',
-            south: '-rot180',
-            west: '-rot270'
+        Properties: {
+            facing: {
+                north: '',
+                east: '-rot90',
+                south: '-rot180',
+                west: '-rot270'
+            }
         }
     }
 };

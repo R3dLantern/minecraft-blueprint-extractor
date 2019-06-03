@@ -7,14 +7,16 @@ var fs = require('fs'),
     nbt = require('prismarine-nbt'),
     argsReader = require('./util/argument_parser'),
     simplifier = require('./util/simplifier'),
-    materialsListMaker = require('./materials_table/materials_table_maker');
+    materialsListMaker = require('./materials_table/materials_table_maker'),
+    blueprintMaker = require('./blueprint/blueprint_data_maker'),
+    blueprintCodeWriter = require('./blueprint/blueprint_code_writer');
 
 /**
  * Deconstructs a given set of parsed NBT data into a more readable set of instructions that
  * can be transformed easier into the Gamepedia source code.
  * @param {object} parsedData a set of parsed NBT data.
  */
-function constructReadableData(parsedData) {
+function constructReadableData(parsedData, filenameWithoutExtension) {
     
     if (global.configuration.v) {
         console.log('Received data:');
@@ -28,6 +30,21 @@ function constructReadableData(parsedData) {
         console.log(simplifiedData);
     }
     
+    if (global.configuration.o !== undefined) {
+        if (global.configuration.v) {
+            console.log('Simplified data will be written to output/' + global.configuration.o + '.json');
+        }
+		if (!fs.existsSync('./output')) {
+            fs.mkdirSync('./output');
+		}
+        
+        fs.writeFile('output/' + global.configuration.o + '.json', JSON.stringify(simplifiedData, null, "\t"), function (error) {
+            if (error) {
+                throw error;
+            }
+        })
+    }
+    
     // Save the overall size of the structure.
     var structureSize = { x: simplifiedData.size[0], y: simplifiedData.size[1], z: simplifiedData.size[2] };
     
@@ -35,7 +52,7 @@ function constructReadableData(parsedData) {
     // var rawBlocksList = parsedData['palette']['value']['value'];
     
     return {
-        structureSize: structureSize,
+        blueprintData: blueprintMaker.createBlueprintData(simplifiedData, filenameWithoutExtension),
         materialsList: materialsListMaker.getMaterialsListFromRawPalette(simplifiedData.palette)
     };
 }
@@ -44,7 +61,7 @@ function constructReadableData(parsedData) {
  * Parse a given NBT file content string as JSON
  * @param {string} fileContents file content as a string. Must be valid NBT format.
  */
-function parseFile(fileContents) {
+function parseFile(fileContents, filenameWithoutExtension) {
     if (global.configuration.v) {
         console.log('Parsing file contents...');
     }
@@ -57,12 +74,17 @@ function parseFile(fileContents) {
             console.log('File successfully parsed.');
         }
         
-        var materialsList = constructReadableData(parsedContent).materialsList,
-            i = 0;
+        var readableData = constructReadableData(parsedContent, filenameWithoutExtension),
+            materialsList = readableData.materialsList,
+            blueprintData = readableData.blueprintData,
+            i = 0
+        ;
+        
         for (i; i < materialsList.length; i += 1) {
             console.log(materialsListMaker.toTableRowCommand(materialsList[i]));
         }
         
+        console.log(blueprintCodeWriter.writeCodeFromBlueprintData(blueprintData));
     });
 }
 
@@ -71,5 +93,9 @@ fs.readFile(global.configuration.file, function (error, data) {
     if (error) {
         throw error;
     }
-    parseFile(data);
+    var filename = global.configuration.file;
+    filename = filename.substr(filename.lastIndexOf('/') + 1, filename.length - 1);
+    filename = filename.substr(0, filename.lastIndexOf('.'));
+    
+    parseFile(data, filename);
 });
