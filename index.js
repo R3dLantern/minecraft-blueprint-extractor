@@ -53,7 +53,7 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
     
     return {
         blueprintData: blueprintMaker.createBlueprintData(simplifiedData, filenameWithoutExtension),
-        materialsList: materialsListMaker.getMaterialsListFromRawPalette(simplifiedData.palette)
+        materialsData: materialsListMaker.getMaterialsTableData(simplifiedData.palette, simplifiedData.blocks, structureSize.y)
     };
 }
 
@@ -75,13 +75,13 @@ function parseFile(fileContents, filenameWithoutExtension) {
         }
         
         var readableData = constructReadableData(parsedContent, filenameWithoutExtension),
-            materialsList = readableData.materialsList,
+            materialsList = readableData.materialsData.materials,
             blueprintData = readableData.blueprintData,
             i = 0
         ;
         
         for (i; i < materialsList.length; i += 1) {
-            console.log(materialsListMaker.toTableRowCommand(materialsList[i]));
+            console.log(materialsListMaker.toTableRowCommand(materialsList[i].item));
         }
         
         console.log(blueprintCodeWriter.writeCodeFromBlueprintData(blueprintData));
