@@ -7,7 +7,7 @@ var fs = require('fs'),
     nbt = require('prismarine-nbt'),
     argsReader = require('./util/argument_parser'),
     simplifier = require('./util/simplifier'),
-    materialsListMaker = require('./materials_table/materials_table_maker'),
+    materialsCodeWriter = require('./materials_table/materials_table_code_writer'),
     blueprintMaker = require('./blueprint/blueprint_data_maker'),
     blueprintCodeWriter = require('./blueprint/blueprint_code_writer');
 
@@ -42,7 +42,7 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
             if (error) {
                 throw error;
             }
-        })
+        });
     }
     
     // Save the overall size of the structure.
@@ -53,7 +53,7 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
     
     return {
         blueprintData: blueprintMaker.createBlueprintData(simplifiedData, filenameWithoutExtension),
-        materialsData: materialsListMaker.getMaterialsTableData(simplifiedData.palette, simplifiedData.blocks, structureSize.y)
+        materialsCode: materialsCodeWriter.generateTableCode(simplifiedData.palette, simplifiedData.blocks, structureSize.y)
     };
 }
 
@@ -75,20 +75,25 @@ function parseFile(fileContents, filenameWithoutExtension) {
         }
         
         var readableData = constructReadableData(parsedContent, filenameWithoutExtension),
-            materialsList = readableData.materialsData.materials,
-            blueprintData = readableData.blueprintData,
+            materialsTableCode = readableData.materialsCode,
+            blueprintCode = blueprintCodeWriter.writeCodeFromBlueprintData(readableData.blueprintData),
             i = 0
         ;
         
-        for (i; i < materialsList.length; i += 1) {
-            console.log(materialsListMaker.toTableRowCommand(materialsList[i].item));
-        }
-        
-        console.log(blueprintCodeWriter.writeCodeFromBlueprintData(blueprintData));
+        console.log(materialsTableCode);
+        console.log(blueprintCode);
+        console.log('\n\nWriting to output file...');
+        fs.writeFile('output/' + global.configuration.o, materialsTableCode + '\n\n' + blueprintCode, function (error) {
+            if (error) {
+                throw error;
+            }
+            console.log('Wrote to file. Finished!');
+        });
     });
 }
 
 argsReader.readArgumentsFromCli(require('minimist')(process.argv.slice(2)));
+console.log('Generating code...\n\n');
 fs.readFile(global.configuration.file, function (error, data) {
     if (error) {
         throw error;
