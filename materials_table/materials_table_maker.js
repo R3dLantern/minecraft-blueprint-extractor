@@ -68,15 +68,6 @@ var getMaterialsListFromRawPalette = function (rawPaletteList) {
 'use strict';
 module.exports = {
     /**
-     * From a given Materials data map item, create a table row command for the Gamepedia source code.
-     * @param   {object} item A data map item @see materials_data_map.json
-     * @returns {string} the item data as a Gamepedia materials table row command.
-     */
-    toTableRowCommand: function (item) {
-        return '{{' + item.spriteType + '|' + item.internalId + '|link=' + item.link + '|text=' + item.text + '}}';
-    },
-    
-    /**
      * Generate an object that contains relevant data to create the Gamepedia source code for a materials table.
      * @param   {object} rawPaletteList The simplified raw palette list from a parsed NBT Structure file.
      * @param   {object} blocks         The simplified blocks list from a parsed NBT Structure file.
@@ -112,24 +103,29 @@ module.exports = {
             }
         }
         
-        /*
-         * 4. The function must walk through all blocks of the given blocks list.
-         * TODO:
-         * 1.   The block must be contained within the collected states of all materials. This excludes irrelevant blocks like minecraft:air or minecraft:jigsaw.
-         *      We can utilize materialsData.usedStates to determine whether the block is irrelevant or not.
-         * 2.   We need to find the matching material via state.
-         * 3.   If found, we need to increment the layer of the matching material from the block position data.
-         */
-        
         i = 0;
+        
+        // 4. We need to iterate through all blocks of the structure.
         for (i; i < blocks.length; i += 1) {
-            if (materialsData.usedStates.includes(blocks[i].state)) {
+            if (blocks[i].hasOwnProperty('nbt')) {
+                // This is a jigsaw block - we must determine its final state
+                j = 0;
+                for (j; j < materialsData.materials.length; j += 1) {
+                    if (materialsData.materials[j].name === blocks[i].nbt.final_state) {
+                        // Final state found -> increment associated layer
+                        materialsData.materials[j].layers[blocks[i].pos[1]] += 1;
+                        j = materialsData.materials.length;
+                    }
+                }
+            } else if (materialsData.usedStates.includes(blocks[i].state)) {
+                // This is another relevant block - we must determine its state
                 if (global.configuration.v) {
                     console.log('Found relevant block at index ' + i);
                 }
                 j = 0;
                 for (j; j < materialsData.materials.length; j += 1) {
                     if (materialsData.materials[j].states.includes(blocks[i].state)) {
+                        // State found -> increment associated layer
                         materialsData.materials[j].layers[blocks[i].pos[1]] += 1;
                         j = materialsData.materials.length;
                     }
@@ -137,12 +133,13 @@ module.exports = {
             }
         }
         
-        // 5. finally, iterate through all material layer arrays and assign the sum of all indices to the last index
         i = 0;
+        
+        // 5. finally, iterate through all material layer arrays and assign the sum of all indices to the last index
         for (i; i < materialsData.materials.length; i += 1) {
             j = 0;
             sum = 0;
-            for (j; j < materialsData.materials[i].layers.length - 1; j += 1) {
+            for (j; j < materialsData.materials[i].layers.length - 1; j += 1) { // Ignoring the last index here is adequate since j is being incremented anyway
                 sum += materialsData.materials[i].layers[j];
             }
             materialsData.materials[i].layers[j] = sum;
@@ -150,6 +147,7 @@ module.exports = {
         
         result.materials = materialsData.materials;
         
+        // Debugging purposes
         if (global.configuration.v) {
             console.log('materials table data:');
             console.log(result);
