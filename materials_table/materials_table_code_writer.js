@@ -1,9 +1,9 @@
 /*jslint node:true*/
-var dataMaker = require('./materials_table_maker');
-
-var toTableRowCommand = function (item) {
-    return '{{' + item.spriteType + '|' + item.internalId + '|link=' + item.link + '|text=' + item.text + '}}';
-};
+var dataMaker = require('./materials_table_maker'),
+    toTableRowCommand = function (item) {
+        return '{{' + item.spriteType + '|' + item.internalId + '|link=' + item.link + '|text=' + item.text + '}}';
+    }
+;
 
 module.exports = {
     /**

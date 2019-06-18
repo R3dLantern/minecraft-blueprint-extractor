@@ -1,8 +1,5 @@
 /*jslint node:true*/
 'use strict';
-require('./block_data/ignored_blocks');
-require('./block_data/materials_data_map');
-
 var fs = require('fs'),
     nbt = require('prismarine-nbt'),
     argsReader = require('./util/argument_parser'),
@@ -23,22 +20,18 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
         console.log(parsedData);
     }
     
-    
     var simplifiedData = simplifier.simplifyObject(parsedData);
     if (global.configuration.v) {
         console.log('Simplified data:');
         console.log(simplifiedData);
     }
     
-    if (global.configuration.o !== undefined) {
-        if (global.configuration.v) {
-            console.log('Simplified data will be written to output/' + global.configuration.o + '.json');
-        }
-		if (!fs.existsSync('./output')) {
+    if (global.configuration.v) {
+        console.log('Simplified data will be written to ' + global.configuration.s);
+        if (!fs.existsSync('./output')) {
             fs.mkdirSync('./output');
 		}
-        
-        fs.writeFile('output/' + global.configuration.o + '.json', JSON.stringify(simplifiedData, null, "\t"), function (error) {
+        fs.writeFile(global.configuration.s, JSON.stringify(simplifiedData, null, "\t"), function (error) {
             if (error) {
                 throw error;
             }

@@ -1,10 +1,13 @@
 /*jslint node:true*/
 global.configuration = {
-    file: undefined,
     f: undefined,
-    output: "./output.txt",
+    file: undefined,
     o: "./output.txt",
-    v: false
+    output: "./output.txt",
+    s: "./output/simplified-data.json",
+    simplifiedOutput: "./output/simplified-data.json",
+    v: false,
+    verbose: false
 };
 
 /**
@@ -13,14 +16,26 @@ global.configuration = {
  */
 var checkRequiredArguments = function () {
     'use strict';
-    if (global.configuration.file === undefined && global.configuration.f === undefined) {
-        throw new Error('Missing input file argument. Please specify a file with -f or -file');
-    } else if (global.configuration.file === undefined) {
-        global.configuration.file = global.configuration.f;
-    } else {
+    if (global.configuration.f === undefined && global.configuration.file === undefined) {
+        throw new Error('Missing input file argument. Please specify a file with -f or --file');
+    } else if (global.configuration.f === undefined) {
         global.configuration.f = global.configuration.file;
+    } else {
+        global.configuration.file = global.configuration.f;
     }
 };
+
+/**
+ * Assign ambiguous arguments
+ */
+var assignArguments = function () {
+    if (global.configuration.verbose) {
+        global.configuration.v = global.configuration.verbose;
+    } else if (global.configuration.v) {
+        global.configuration.verbose = global.configuration.v;
+    }
+    // TODO: Check output/o and simplifiedOutput/s
+}
 
 module.exports = {
     readArgumentsFromCli: function (givenArgs) {
@@ -34,6 +49,7 @@ module.exports = {
             }
         }
         checkRequiredArguments();
+        assignArguments();
         if (global.configuration.v) {
             console.log('Received Arguments:');
             console.log(givenArgs);
