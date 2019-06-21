@@ -1,5 +1,10 @@
 /*jslint node:true*/
 'use strict';
+
+require('./block_data/ignored_blocks');
+require('./block_data/materials_data_map');
+require('./util/logger');
+
 var fs = require('fs'),
     nbt = require('prismarine-nbt'),
     argsReader = require('./util/argument_parser'),
@@ -15,16 +20,11 @@ var fs = require('fs'),
  */
 function constructReadableData(parsedData, filenameWithoutExtension) {
     
-    if (global.configuration.v) {
-        console.log('Received data:');
-        console.log(parsedData);
-    }
+    global.vLog(['\nParsed data:', parsedData]);
     
     var simplifiedData = simplifier.simplifyObject(parsedData);
-    if (global.configuration.v) {
-        console.log('Simplified data:');
-        console.log(simplifiedData);
-    }
+    
+    global.vLog(['\nSimplified data:', simplifiedData]);
     
     if (global.configuration.v) {
         console.log('Simplified data will be written to ' + global.configuration.s);
@@ -55,17 +55,15 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
  * @param {string} fileContents file content as a string. Must be valid NBT format.
  */
 function parseFile(fileContents, filenameWithoutExtension) {
-    if (global.configuration.v) {
-        console.log('Parsing file contents...');
-    }
+    
+    global.vLog('Parsing file contents...');
+    
     nbt.parse(fileContents, function (error, parsedContent) {
         if (error) {
             throw error;
         }
         
-        if (global.configuration.v) {
-            console.log('File successfully parsed.');
-        }
+        global.vLog('File successfully parsed.');
         
         var readableData = constructReadableData(parsedContent, filenameWithoutExtension),
             materialsTableCode = readableData.materialsCode,

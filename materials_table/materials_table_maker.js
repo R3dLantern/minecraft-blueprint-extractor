@@ -4,64 +4,62 @@
  */
 var getMaterialsListFromRawPalette = function (rawPaletteList) {
     if (typeof rawPaletteList !== 'object') {
-            return [];
-        }
+        global.vLog('given parameter is not an object');
+        return [];
+    }
         
-        var result = {
-                materials: [],
-                usedStates: []
-            },
-            item,
-            i = 0,
-            j,
-            found;
+    var result = {
+            materials: [],
+            usedStates: []
+        },
+        item,
+        i = 0,
+        j,
+        found
+    ;    
     
-        for (i; i < rawPaletteList.length; i += 1) {
+    for (i; i < rawPaletteList.length; i += 1) {
             
-            // Simplify
-            item = rawPaletteList[i];
+        // Simplify
+        item = rawPaletteList[i];
         
-            // 1. The item must not be on the ignored list (we will ignore functional and redundant blocks, such as minecraft:air or minecraft:jigsaw)
-            if (global.ignoredBlocks.includes(item.Name)) {
-                continue;
-            }
+        // 1. The item must not be on the ignored list (we will ignore functional and redundant blocks, such as minecraft:air or minecraft:jigsaw)
+        if (global.ignoredBlocks.includes(item.Name)) {
+            continue;
+        }
             
-            if (result.length === 0) {
+        if (result.length === 0) {
+            result.materials.push({
+                item: global.materialsDataMap[item.Name],
+                name: item.Name,
+                states: [i]
+            });
+            result.usedStates.push(i);
+        } else {
+            j = 0;
+            found = false;
+            for (j; j < result.materials.length; j += 1) {
+                if (item.Name === result.materials[j].name) {
+                    found = true;
+                    result.materials[j].states.push(i);
+                    result.usedStates.push(i);
+                    j = result.materials.length;
+                }
+            }
+                
+            if (!found) {
                 result.materials.push({
                     item: global.materialsDataMap[item.Name],
                     name: item.Name,
                     states: [i]
                 });
                 result.usedStates.push(i);
-            } else {
-                j = 0;
-                found = false;
-                for (j; j < result.materials.length; j += 1) {
-                    if (item.Name === result.materials[j].name) {
-                        found = true;
-                        result.materials[j].states.push(i);
-                        result.usedStates.push(i);
-                        j = result.materials.length;
-                    }
-                }
-                
-                if (!found) {
-                    result.materials.push({
-                        item: global.materialsDataMap[item.Name],
-                        name: item.Name,
-                        states: [i]
-                    });
-                    result.usedStates.push(i);
-                }
             }
         }
+    }
     
-        if (global.configuration.v) {
-            console.log('used states:');
-            console.log(result.usedStates);
-        }
-    
-        return result;
+    global.vLog(['\nUsed states:', result.usedStates]);
+    return result;
 };
 
 /*jslint node:true*/
@@ -119,9 +117,6 @@ module.exports = {
                 }
             } else if (materialsData.usedStates.includes(blocks[i].state)) {
                 // This is another relevant block - we must determine its state
-                if (global.configuration.v) {
-                    console.log('Found relevant block at index ' + i);
-                }
                 j = 0;
                 for (j; j < materialsData.materials.length; j += 1) {
                     if (materialsData.materials[j].states.includes(blocks[i].state)) {
@@ -149,11 +144,11 @@ module.exports = {
         
         // Debugging purposes
         if (global.configuration.v) {
-            console.log('materials table data:');
+            console.log('\nMaterials table data:');
             console.log(result);
             i = 0;
             for (i; i < result.materials.length; i += 1) {
-                console.log('layer count for material item ' + i + ':');
+                console.log('Layer count for material item ' + i + ':');
                 console.log(result.materials[i].layers);
             }
         }

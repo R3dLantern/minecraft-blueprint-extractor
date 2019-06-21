@@ -13,56 +13,71 @@ var getPreparedStatesFromPalette = function (simplifiedPaletteData) {
         paletteItem,
         dataItem,
         resultItem,
+        assignProperties = false,
         result = [],
         j,
-        propKeys;
+        propKeys,
+        propValue;
+    
+    global.vLog(['\nPreparing states from simplified palette data:', simplifiedPaletteData]);
     
     for (i; i < simplifiedPaletteData.length; i += 1) {
-        /*
-         * {
-         *   Properties: { facing: 'north' },
-         *   Name: 'minecraft:wall_torch'
-         * }
-         */
+
         paletteItem = simplifiedPaletteData[i];
+        global.vLog(['\nRetrieved paletteItem:', paletteItem]);
         
-        /*
-         * {
-         *   spriteType: 'BlockSprite',
-         *   internalId: 'torch',
-         *   link: 'Torch',
-         *   text: 'Torch',
-         *   Properties: {
-         *     facing: {
-         *       north: '',
-         *       east: '-rot90',
-         *       south: '-rot180',
-         *       west: '-rot270'
-         *     }
-         *   }
-         * }
-         */
         dataItem = global.materialsDataMap[paletteItem.Name];
+        global.vLog(['Matching dataItem:', dataItem]);
         
-        resultItem = {};
+        resultItem = { state: i };
+        
         if (dataItem.hasOwnProperty('ignoreState') && dataItem.ignoreState) {
+            // Skip Properties assignment
             resultItem.ignoreState = true;
+            global.vLog('\nCaught ignored state, skipping data item');
         } else {
             resultItem.name = dataItem.text;
-            if (dataItem.hasOwnProperty('Properties') && paletteItem.hasOwnProperty('Properties')) {
+            
+            assignProperties = paletteItem.hasOwnProperty('Properties')
+                && dataItem.hasOwnProperty('Properties')
+                && (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
+            ;
+            
+            if (assignProperties) {
+                
+                global.vLog('\nTrying to assign properties for paletteItem...');
+                
                 j = 0;
                 propKeys = Object.keys(paletteItem.Properties);
-                for (j; j < paletteItem.Properties.length; j += 1) {
-                    if (dataItem.Properties.hasOwnProperty(propKeys[j])) {
-                        resultItem.name = resultItem.name + dataItem.Properties[paletteItem.Properties[propKeys[j]]];
+                
+                if (propKeys.length > 0) {
+                    
+                    global.vLog(['\nFound properties in paletteItem:', propKeys]);
+                
+                    for (j; j < propKeys.length; j += 1) {
+                        
+                        global.vLog("\nLooking up paletteItem property '" + propKeys[j] + "' in dataItem...");
+                    
+                        if (dataItem.Properties.hasOwnProperty(propKeys[j])) {
+                            
+                            global.vLog("Found property '" + propKeys[j] + "' in dataItem.");
+                            
+                            resultItem.name = resultItem.name + dataItem.Properties[propKeys[j]][paletteItem.Properties[propKeys[j]]];
+                            
+                            global.vLog("New resultItem name: " + resultItem.name);
+                        } else {
+                            global.vLog("dataItem property '" + propKeys[j] + "' not found.");
+                        }
                     }
                 }
             }   
         }
         
+        global.vLog(['\nCreated prepared state object:', resultItem]);
         result.push(resultItem);
     }
     
+    global.vLog(['\nPreparedStates:', result]);
     return result;
 }
 
@@ -72,15 +87,11 @@ var getPreparedStatesFromPalette = function (simplifiedPaletteData) {
  * @returns {string} The filename without underscores and capitalized words, e.g. "File Name To Split"
  */
 var cleanAndCapitalize = function (filename) {
-    if (global.configuration.v) {
-        console.log('Received filename:');
-        console.log(filename);
-    }
+    
+    global.vLog(['\nReceived filename:', filename]);
     
     if (typeof filename !== 'string') {
-        if (global.configuration.v) {
-            console.log('Argument ' + filename + ' is not of type string - file name cannot be split');
-        }
+        global.vLog('Argument ' + filename + ' is not of type string - file name cannot be split');
         return '';
     }
     
@@ -104,44 +115,64 @@ var cleanAndCapitalize = function (filename) {
 var getBlueprintVariablesMap = function (filename, preparedStates) {
     var variables = getAlphabetAsArray(),
         i = 0,
+        j = 0,
         result = {
             name: 'Village ' + cleanAndCapitalize(filename) + ' ' + filename,
             default: 'Layer 1',
-            variables: []
+            variables: {}
         }
     ;
-    
-    if (global.configuration.v) {
-        console.log('preparedStates:');
-        console.log(preparedStates);
-    }
     
     if (preparedStates.length > variables.length) {
         throw new Error('state count exceeds variables count - please contact developer');
     }
     
     for (i; i < preparedStates.length; i += 1) {
-        
         if (!preparedStates[i].hasOwnProperty('ignoreState') || !preparedStates[i].ignoreState) {
-            result.variables.push({
-                id: variables[i],
+            result.variables[i] = {
+                id: variables[j],
                 name: preparedStates[i].name
-            });
+            };
+            j += 1;
         }
     }
     
+    global.vLog(['\nReturning blueprint variables map:', result]);
     return result;
 }
 
 module.exports = {
     createBlueprintData: function (simplifiedData, filenameWithoutExtension) {
-        var layerCount = simplifiedData.size[1], // Extract the structure Y size
+        var layerCount = simplifiedData.size, // Extract the structure size
             variables = getAlphabetAsArray(),
             result = {
                 metadata: getBlueprintVariablesMap(filenameWithoutExtension, getPreparedStatesFromPalette(simplifiedData.palette)),
                 layers: []
-            }
+            },
+            i = 0,
+            block,
+            fill;
+            j,
+            k
         ;
+        
+        // Iterate through the blocks and check whether they can be applied to a layer.
+        for (i; i < simplifiedData.blocks.length; i += 1) {
+            
+            block = simplifiedData.blocks[i];
+            global.vLog(['\nChecking block:', block]);
+            
+            fill = '%';
+            
+            if (result.metadata.variables.hasOwnProperty(block.state)) {
+                global.vLog('\nFound state ' + block.state);
+                
+                
+                
+                
+            }
+        }
+        
         
         // TODO: Construct the blueprint data layer by layer
         

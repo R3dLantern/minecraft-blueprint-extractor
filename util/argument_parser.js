@@ -50,9 +50,6 @@ module.exports = {
         }
         checkRequiredArguments();
         assignArguments();
-        if (global.configuration.v) {
-            console.log('Received Arguments:');
-            console.log(givenArgs);
-        }
+        global.vLog(['\nReceived Arguments:', givenArgs]);
     }
 };

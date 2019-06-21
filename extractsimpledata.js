@@ -12,26 +12,17 @@ var fs = require('fs'),
  * @param {string} data file content as a string. Must be valid NBT format.
  */
 function parseFile(data) {
-    if (global.configuration.v) {
-        console.log('Parsing file contents...');
-    }
+    global.vLog('Parsing file contents...');
     nbt.parse(data, function (error, parsed) {
         if (error) {
             throw error;
         }
         
-        if (global.configuration.v) {
-            console.log('File successfully parsed.\nReceived data:');
-            console.log(parsed);
-        }
+        global.vLog(['File successfully parsed.\nReceived data:', parsed]);
     
         var simplifiedData = simplifier.simplifyObject(parsed);
         
-        if (global.configuration.v) {
-            console.log('Simplified data:');
-            console.log(simplifiedData);
-            console.log('Simplified data will be written to ' + global.configuration.s);
-        }
+        global.vLog(['Simplified data:', simplifiedData, 'Simplified data will be written to ' + global.configuration.s]);
         
         if (!fs.existsSync('./output')) {
             fs.mkdirSync('./output');

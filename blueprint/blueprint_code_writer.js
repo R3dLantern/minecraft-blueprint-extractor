@@ -12,6 +12,12 @@ module.exports = {
             }
         }
         
+        i = 0;
+        
+        for (i; i < blueprintData.metadata.variables.length; i += 1) {
+            result += '\n|' + blueprintData.metadata.variables[i].id + '=' + blueprintData.metadata.variables[i].name;
+        }
+        
         // TODO: layers
         return result + '\n}}\n</td><td style="vertical-align:top;">\n<!-- TODO: Photo -->\n</td></tr></table>';
     }
