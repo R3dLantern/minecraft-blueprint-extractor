@@ -12,6 +12,7 @@ module.exports = {
      */
     generateTableCode: function (rawPaletteList, blocks, layerCount) {
         var materialsTableData = dataMaker.getMaterialsTableData(rawPaletteList, blocks, layerCount),
+            materialsKeys = Object.keys(materialsTableData.materials),
             result = '==== Materials ====\n{|class="wikitable"\n|-\n!Name',
             i = 1,
             item,
@@ -24,8 +25,8 @@ module.exports = {
         result = result + ' !!Total\n';
         
         i = 0;
-        for (i; i < materialsTableData.materials.length; i += 1) {
-            item = materialsTableData.materials[i];
+        for (i; i < materialsKeys.length; i += 1) {
+            item = materialsTableData.materials[materialsKeys[i]];
             result = result + '|-\n| ' + toTableRowCommand(item.item);
             j = 0;
             for (j; j < item.layers.length; j += 1) {

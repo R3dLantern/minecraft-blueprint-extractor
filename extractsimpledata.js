@@ -1,6 +1,8 @@
 /*jslint node:true*/
 'use strict';
 
+require('./util/logger');
+
 var fs = require('fs'),
     nbt = require('prismarine-nbt'),
     argsReader = require('./util/argument_parser'),
