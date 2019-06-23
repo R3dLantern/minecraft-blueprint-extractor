@@ -10,7 +10,6 @@ var fs = require('fs'),
     argsReader = require('./util/argument_parser'),
     simplifier = require('./util/simplifier'),
     materialsCodeWriter = require('./materials_table/materials_table_code_writer'),
-    blueprintMaker = require('./blueprint/blueprint_data_maker'),
     blueprintCodeWriter = require('./blueprint/blueprint_code_writer');
 
 /**
@@ -45,7 +44,7 @@ function constructReadableData(parsedData, filenameWithoutExtension) {
     // var rawBlocksList = parsedData['palette']['value']['value'];
     
     return {
-        blueprintData: blueprintMaker.createBlueprintData(simplifiedData, filenameWithoutExtension),
+        blueprintCode: blueprintCodeWriter.generateBlueprintCode(simplifiedData, filenameWithoutExtension),
         materialsCode: materialsCodeWriter.generateTableCode(simplifiedData.palette, simplifiedData.blocks, structureSize.y)
     };
 }
@@ -67,7 +66,7 @@ function parseFile(fileContents, filenameWithoutExtension) {
         
         var readableData = constructReadableData(parsedContent, filenameWithoutExtension),
             materialsTableCode = readableData.materialsCode,
-            blueprintCode = blueprintCodeWriter.writeCodeFromBlueprintData(readableData.blueprintData),
+            blueprintCode = readableData.blueprintCode,
             i = 0
         ;
         
