@@ -2,3 +2,5 @@
 node_modules/
 output/
 *.nbt
+extractsimpledata.js
+minecraft-blueprint-extractor.code-workspace
