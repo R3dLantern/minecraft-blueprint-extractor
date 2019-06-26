@@ -1,8 +1,7 @@
 /*jslint node:true*/
 'use strict';
 
-require('./block_data/ignored_blocks');
-require('./block_data/materials_data_map');
+require('./util/blocks');
 require('./util/logger');
 
 var fs = require('fs'),

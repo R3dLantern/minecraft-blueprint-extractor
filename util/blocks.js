@@ -1,5 +1,7 @@
-global.materialsDataMap = {
-    "minecraft:air": { ignoreState: true },
+global.blockData = {
+    "minecraft:air": {
+        ignoreState: true
+    },
     "minecraft:cobblestone": {
         spriteType: 'BlockSprite',
         internalId: 'cobblestone',
@@ -26,6 +28,12 @@ global.materialsDataMap = {
         link: 'Dirt',
         text: 'Dirt'
     },
+    "minecraft:fletching_table": {
+        spriteType: 'BlockSprite',
+        internalId: 'fletching-table',
+        link: 'Fletching Table',
+        text: 'Fletching Table'
+    },
     "minecraft:glass_pane": {
         spriteType: 'BlockSprite',
         internalId: 'glass-pane',
@@ -38,6 +46,9 @@ global.materialsDataMap = {
             }
         }
     },
+    "minecraft:grass": {
+        ignoreState: true
+    },
     "minecraft:grass_block": {
         spriteType: 'BlockSprite',
         internalId: 'grass-block',
@@ -48,6 +59,13 @@ global.materialsDataMap = {
                 "false": '%-top'
             }
         }
+    },
+    "minecraft:grass_path": {
+        spriteType: 'BlockSprite',
+        internalId: 'grass-path',
+        link: 'Grass Path',
+        text: 'Grass Path',
+        defaultProperty: '%-top'
     },
     "minecraft:hay_block": {
         spriteType: 'BlockSprite',
@@ -61,7 +79,9 @@ global.materialsDataMap = {
             }
         }
     },
-    "minecraft:jigsaw": { ignoreState: true },
+    "minecraft:jigsaw": {
+        ignoreState: true
+    },
     "minecraft:oak_door": {
         spriteType: 'ItemSprite',
         internalId: 'oak-door',
@@ -105,6 +125,17 @@ global.materialsDataMap = {
         link: 'Pressure Plate',
         text: 'Oak Pressure Plate',
         ignoreProperties: true
+    },
+    "minecraft:oak_slab": {
+        spriteType: 'BlockSprite',
+        internalId: 'oak-slab',
+        link: 'Slab',
+        text: 'Oak Slab',
+        Properties: {
+            type: {
+                double: 'Double %'
+            }
+        }
     },
     "minecraft:oak_stairs": {
         spriteType: 'BlockSprite',
@@ -154,6 +185,9 @@ global.materialsDataMap = {
         link: 'Wood',
         text: 'Stripped Oak Wood'
     },
+    "minecraft:tall_grass": {
+        ignoreState: true
+    },
     "minecraft:torch": {
         reference: "minecraft:wall_torch"
     },
@@ -170,5 +204,23 @@ global.materialsDataMap = {
                 west: '%-rot270'
             }
         }
+    },
+    "minecraft:white_wool": {
+        spriteType: 'BlockSprite',
+        internalId: 'white-wool',
+        link: 'Wool',
+        text: 'White Wool'
+    },
+    "minecraft:yellow_carpet": {
+        spriteType: 'BlockSprite',
+        internalId: 'yellow-carpet',
+        link: 'Carpet',
+        text: 'Yellow Carpet'
+    },
+    "minecraft:yellow_wool": {
+        spriteType: 'BlockSprite',
+        internalId: 'yellow-wool',
+        link: 'Wool',
+        text: 'Yellow Wool'
     }
 };

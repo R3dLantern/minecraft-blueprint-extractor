@@ -10,30 +10,27 @@ module.exports = {
      * Generate the Gamepedia source code from a given materials table data object created with materials_table_maker.js
      * @param {object} materialsTableData an object containing relevant table data
      */
-    generateTableCode: function (rawPaletteList, blocks, layerCount) {
-        var materialsTableData = dataMaker.getMaterialsTableData(rawPaletteList, blocks, layerCount),
-            materialsKeys = Object.keys(materialsTableData.materials),
+    generateTableCode: function (palette, blocks, layerCount) {
+        var data = dataMaker.getMaterialsTableData(palette, blocks, layerCount),
             result = '==== Materials ====\n{|class="wikitable"\n|-\n!Name',
             i = 1,
-            item,
             j
         ;
         
-        for (i; i < materialsTableData.layerCount + 1; i += 1) {
+        for (i; i < data.layerCount + 1; i += 1) {
             result = result + ' !!Layer ' + i;
         }
         result = result + ' !!Total\n';
         
         i = 0;
-        for (i; i < materialsKeys.length; i += 1) {
-            item = materialsTableData.materials[materialsKeys[i]];
-            result = result + '|-\n| ' + toTableRowCommand(item.item);
+        for (i; i < data.materials.length; i += 1) {
+            result = result + '|-\n| ' + toTableRowCommand(data.materials[i]);
             j = 0;
-            for (j; j < item.layers.length; j += 1) {
-                if (item.layers[j] === 0) {
+            for (j; j < data.materials[i].layers.length; j += 1) {
+                if (data.materials[i].layers[j] === 0) {
                     result = result + ' || -';
                 } else {
-                    result = result + ' || ' + item.layers[j];
+                    result = result + ' || ' + data.materials[i].layers[j];
                 }
             }
             result = result + '\n';

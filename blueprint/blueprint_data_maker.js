@@ -1,5 +1,7 @@
 /*jslint node:true*/
 'use strict';
+var jigsawDecoder = require('../util/jigsaw_decoder');
+
 /**
  * return all uppercase and lowercase letters of the standard latin alphabet as an array.
  * @returns {array} all uppercase and lowercase letters of the standard latin alphabet as an array
@@ -7,68 +9,6 @@
 var getAlphabetAsArray = function () {
     return 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
 };
-
-/**
- * Retrieve and convert a state that is declared as a jigsaw block into a
- * materials data map item and prepared state item representation.
- * @param {number} state                    given state index
- * @param {array} simplifiedBlocksData      provided block array
- * @returns {object}    a carrier object holding both representations.
- */
-var getJigsawPreparedStateFromBlocks = function (state, simplifiedBlocksData) {
-    // Find the first block that matches the jigsaw state.
-    global.vLog('Blueprint Data Maker: Searching block with state ' + i + '...');
-    var block = simplifiedBlocksData.find(function (el) {
-            return el.state === state;
-        }),
-        dataItem,
-        preparedState,
-        finalState,
-        foundProperties,
-        securedProperties,
-        assignProperties,
-        i,
-        kv
-    ;
-    if (block === undefined) {
-        throw new Error('Blueprint Data Maker: Target block state not found');
-    }
-    global.vLog(['Blueprint Data Maker: Found block:', block, 'Blueprint Data Maker: Checking for properties data...']);
-    finalState = block.nbt.final_state;
-    foundProperties = finalState.match(/\[(.)*\]/g);
-    if (foundProperties === null) {
-        global.vLog('Blueprint Data Maker: No properties data found.');
-        dataItem = global.materialsDataMap[finalState];
-        preparedState = { name: dataItem.text, states: [i] };
-    } else {
-        global.vLog('Blueprint Data Maker: Found properties data - analyzing...');
-        dataItem = global.materialsDataMap[finalState.slice(0, finalState.indexOf('['))];
-        preparedState = { name: dataItem.text, states: [i] };
-        assignProperties = (
-            (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
-            && dataItem.hasOwnProperty('Properties')
-        );
-        if (assignProperties) {
-            securedProperties = foundProperties[0].slice(1, foundProperties[0].length - 1).split(',');
-            i = 0;
-            global.vLog(['Blueprint Data Maker: Secured properties for assignment:', securedProperties]);
-            for (i; i < securedProperties.length; i += 1) {
-                kv = securedProperties[i].split('=');
-                global.vLog(['Blueprint Data Maker: Trying to assign property:', kv]);
-                if (dataItem.Properties.hasOwnProperty(kv[0]) && dataItem.Properties[kv[0]].hasOwnProperty(kv[1])) {
-                    preparedState.name = dataItem.Properties[kv[0]][kv[1]].replace(/\%/g, dataItem.text);
-                    i = securedProperties.length; // Cancel loop
-                    global.vLog('Blueprint Data Maker: Property ' + securedProperties[i] + ' successfully assigned!');
-                }
-            }
-        } else {
-            global.vLog('Blueprint Data Maker: Properties assignment unneccessary.');
-        }
-    }
-
-    global.vLog(['Blueprint Data Maker: Constructed jigsaw data:', preparedState]);
-    return preparedState;
-}
 
 /**
  * Construct a list of prepared states that can be mapped against a variables map.
@@ -96,11 +36,11 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
         // Retrieve the corresponding data item
         // If the item is a jigsaw item, we need to pull the final state data from the blocks
         if (paletteItem.Name === 'minecraft:jigsaw') {
-            resultItem = getJigsawPreparedStateFromBlocks(i, simplifiedBlocksData);
+            resultItem = jigsawDecoder.getJigsawPreparedStateOrDataItemFromBlocks(i, simplifiedBlocksData, true);
         } else {
-            var dataItem = global.materialsDataMap[paletteItem.Name];
+            var dataItem = global.blockData[paletteItem.Name];
             if (dataItem.hasOwnProperty('ignoreState') && dataItem.ignoreState) {
-                global.vLog('Blueprint Data Maker: Found ignorable state:');
+                global.vLog('Blueprint Data Maker: Found ignorable state');
                 continue;
             }
 
@@ -108,7 +48,7 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
             
             if (dataItem.hasOwnProperty('reference')) {
                 global.vLog('Blueprint Data Maker: Found reference to '+ dataItem.reference);
-                dataItem = global.materialsDataMap[dataItem.reference];
+                dataItem = global.blockData[dataItem.reference];
                 global.vLog(['Blueprint Data Maker: Referenced dataItem:', dataItem]);
             }
 
@@ -132,15 +72,15 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
                         j = propKeys.length;
                     }
                 }
+            } else if (dataItem.hasOwnProperty('defaultProperty')) {
+                resultItem.name = dataItem.defaultProperty.replace(/\%/g, dataItem.text);
             }
         }
 
         if (result.length === 0) {
             result.push(resultItem);
         } else {
-            var existing = result.findIndex(function (el) {
-                return el.name === resultItem.name;
-            });
+            var existing = result.findIndex((el) => el.name === resultItem.name);
             if (existing > -1) {
                 result[existing].states.push(i);
             } else {
@@ -254,10 +194,7 @@ module.exports = {
             fill = ' ';
             pos = block.pos;
 
-            stateIdx = result.metadata.variables.findIndex(function (el) {
-                return el.states.includes(block.state);
-            });
-
+            stateIdx = result.metadata.variables.findIndex((el) => el.states.includes(block.state));
             if (stateIdx > -1) {
                 fill = result.metadata.variables[stateIdx].key;
             }
