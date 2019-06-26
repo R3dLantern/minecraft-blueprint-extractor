@@ -8,224 +8,147 @@ var getAlphabetAsArray = function () {
     return 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
 };
 
-var decodeFinalStateForJigsawBlock = function (final_state) {
-    var result = {
-        dataName: '',
-        Properties: {}
-    },
-        foundProperties = final_state.match(/\[(.)*\]/g),
-        i = 0,
-        keyValue;
-    
+/**
+ * Retrieve and convert a state that is declared as a jigsaw block into a
+ * materials data map item and prepared state item representation.
+ * @param {number} state                    given state index
+ * @param {array} simplifiedBlocksData      provided block array
+ * @returns {object}    a carrier object holding both representations.
+ */
+var getJigsawPreparedStateFromBlocks = function (state, simplifiedBlocksData) {
+    // Find the first block that matches the jigsaw state.
+    global.vLog('Blueprint Data Maker: Searching block with state ' + i + '...');
+    var block = simplifiedBlocksData.find(function (el) {
+            return el.state === state;
+        }),
+        dataItem,
+        preparedState,
+        finalState,
+        foundProperties,
+        securedProperties,
+        assignProperties,
+        i,
+        kv
+    ;
+    if (block === undefined) {
+        throw new Error('Blueprint Data Maker: Target block state not found');
+    }
+    global.vLog(['Blueprint Data Maker: Found block:', block, 'Blueprint Data Maker: Checking for properties data...']);
+    finalState = block.nbt.final_state;
+    foundProperties = finalState.match(/\[(.)*\]/g);
     if (foundProperties === null) {
-        global.vLog('Blueprint Data Maker: No additional properties for final state found');
-        result.dataName = final_state;
-        return result;
+        global.vLog('Blueprint Data Maker: No properties data found.');
+        dataItem = global.materialsDataMap[finalState];
+        preparedState = { name: dataItem.text, states: [i] };
+    } else {
+        global.vLog('Blueprint Data Maker: Found properties data - analyzing...');
+        dataItem = global.materialsDataMap[finalState.slice(0, finalState.indexOf('['))];
+        preparedState = { name: dataItem.text, states: [i] };
+        assignProperties = (
+            (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
+            && dataItem.hasOwnProperty('Properties')
+        );
+        if (assignProperties) {
+            securedProperties = foundProperties[0].slice(1, foundProperties[0].length - 1).split(',');
+            i = 0;
+            global.vLog(['Blueprint Data Maker: Secured properties for assignment:', securedProperties]);
+            for (i; i < securedProperties.length; i += 1) {
+                kv = securedProperties[i].split('=');
+                global.vLog(['Blueprint Data Maker: Trying to assign property:', kv]);
+                if (dataItem.Properties.hasOwnProperty(kv[0]) && dataItem.Properties[kv[0]].hasOwnProperty(kv[1])) {
+                    preparedState.name = dataItem.Properties[kv[0]][kv[1]].replace(/\%/g, dataItem.text);
+                    i = securedProperties.length; // Cancel loop
+                    global.vLog('Blueprint Data Maker: Property ' + securedProperties[i] + ' successfully assigned!');
+                }
+            }
+        } else {
+            global.vLog('Blueprint Data Maker: Properties assignment unneccessary.');
+        }
     }
-    
-    result.dataName = final_state.slice(0, final_state.indexOf('['));
-    foundProperties = foundProperties[0].slice(1, foundProperties[0].length - 1).split(',');
-    
-    global.vLog(['Blueprint Data Maker: secured properties for final state: ', foundProperties]);
-    
-    for (i; i < foundProperties.length; i += 1) {
-        keyValue = foundProperties[i].split('=');
-        global.vLog(['Blueprint Data Maker: applying property to final state: ', keyValue]);
-        result.Properties[keyValue[0]] = keyValue[1];
-    }
-    
-    global.vLog(['Blueprint Data Maker: Generated final state object: ', result]);
-    return result;
+
+    global.vLog(['Blueprint Data Maker: Constructed jigsaw data:', preparedState]);
+    return preparedState;
 }
 
 /**
- * Resolve a jigsaw block state with a final state reference to its final state.
- * @param   {object} block          A given block with an 'nbt' property
- * @param   {object} preparedStates A set of prepared blueprint block states
- * @returns {number} the index of the final state of the given block within the prepared states
- * @throws {Error} The given block does not have an 'nbt' property
+ * Construct a list of prepared states that can be mapped against a variables map.
+ * @param {array} simplifiedPaletteData     given palette data
+ * @param {array} simplifiedBlocksData      given blocks data
+ * @returns {array} a list of prepared states that can be mapped against a variables map
  */
-var getFinalStateFromNbtBlock = function (block, preparedStates) {
-    if (!block.hasOwnProperty('nbt')) {
-        throw new Error('block has no nbt property');
-    }
-    
-    if (!block.nbt.hasOwnProperty('final_state')) {
-        if (block.nbt.hasOwnProperty('id')) {
-            global.vLog('Blueprint Data Maker: Found implicit jigsaw block with state ' + block.nbt.id);
-            return block.state;
-        }
-        throw new Error('No entry point for final state data found')
-    }
-    
-    global.vLog('Blueprint Data Maker: Found jigsaw block with final state ' + block.nbt.final_state);
-    
-    var finalStateObj = decodeFinalStateForJigsawBlock(block.nbt.final_state),
-        dataItem = global.materialsDataMap[finalStateObj.dataName],
-        preparedStateValues = Object.values(preparedStates),
-        propKeys = Object.keys(finalStateObj.Properties),
-        i = 0,
-        j,
-        matching
-    ;
-    
-    if (propKeys.length > 0) {
-        
-        global.vLog('Blueprint Data Maker: Trying to match properties for final state block...');
-        
-        if (dataItem.hasOwnProperty('ignoreProperties') && dataItem.ignoreProperties) {
-            
-            global.vLog('Blueprint Data Maker: Ignore flag for property found. Fetching by dataName...');
-            
-            for (i; i < preparedStateValues.length; i += 1) {
-                if (preparedStateValues[i].dataName === finalStateObj.dataName) {
-                    
-                    global.vLog('Blueprint Data Maker: Found matching final state!');
-                    
-                    return i;
-                }
-            }
-            throw new Error('Error getting final state');
-        } else {
-            // TODO
-            for (i; i < preparedStateValues.length; i += 1) {
-                if (preparedStateValues[i].dataName === finalStateObj.dataName && preparedStateValues[i].hasOwnProperty('Properties')) {
-                    
-                    global.vLog('Blueprint Data Maker: Found matching dataName - matching properties...');
-                    
-                    j = 0;
-                    matching = 0;
-                    for (j; j < propKeys.length; j += 1) {
-                        if (preparedStateValues[i].Properties.hasOwnProperty(propKeys[j]) && preparedStateValues[i].Properties[propKeys[j]] === finalStateObj.Properties[propKeys[j]]) {
-                            global.vLog('Blueprint Data Maker: Found matching property ' + propKeys[j] + ' with value ' + finalStateObj.Properties[propKeys[j]]);
-                            matching += 1;
-                        }
-                    }
-                    if ((matching + 1) === propKeys.length) {
-                        global.vLog('Blueprint Data Maker: Found matching final state!');
-                        return i;
-                    }
-                    
-                    throw new Error('Error getting final state');
-                }
-            }
-            throw new Error('Error getting final state');
-        }
-    }
-    
-    for (i; i < preparedStateValues.length; i += 1) {
-        if (preparedStateValues[i].dataName === finalStateObj.dataName) {
-            return i;
-        }
-    }
-                
-    throw new Error('Error getting final state');
-};
-
-var getReferencedStateFromAmbigousBlock = function (block, preparedStates) {
-    
-    global.vLog('Blueprint Data Maker: Scouting for an ambiguous block...');
-    
-    
-    var dataItem = global.materialsDataMap[preparedStates[block.state].dataName],
-        keys,
-        i;
-    
-    if (!dataItem.hasOwnProperty('reference')) {
-        return block.state;
-    }
-    
-    global.vLog('Blueprint Data Maker: Found a reference to state ' + dataItem.reference);
-    i = 0;
-    keys = Object.keys(preparedStates);
-    for (i; i < keys.length; i += 1) {
-        if (preparedStates[keys[i]].dataName === dataItem.reference) {
-            return preparedStates[keys[i]].state;
-        }
-    }
-}
-
-var getPreparedStatesFromPalette = function (simplifiedPaletteData) {
+var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, simplifiedBlocksData) {
     var i = 0,
         paletteItem,
         dataItem,
         resultItem,
-        assignProperties = false,
-        result = [],
-        j,
-        propKeys,
-        propValue;
-    
-    global.vLog(['\nBlueprint Data Maker: Preparing states from simplified palette data:', simplifiedPaletteData]);
-    
+        assignProperties,
+        result = []
+    ;
+
     for (i; i < simplifiedPaletteData.length; i += 1) {
 
-        paletteItem = simplifiedPaletteData[i];
+        // Retrieve the paletteItem
+        var paletteItem = simplifiedPaletteData[i],
+            resultItem
+        ;
         global.vLog(['\nBlueprint Data Maker: Retrieved paletteItem:', paletteItem]);
-        
-        dataItem = global.materialsDataMap[paletteItem.Name];
-        
-        global.vLog(['Blueprint Data Maker: Matching dataItem:', dataItem]);
-        
-        if (dataItem.hasOwnProperty('reference')) {
-            global.vLog('Blueprint Data Maker: Found reference to '+ dataItem.reference);
-            dataItem = global.materialsDataMap[dataItem.reference];
-            global.vLog(['Blueprint Data Maker: Referenced dataItem:', dataItem]);
-        }
-        
-        resultItem = { dataName: paletteItem.Name };
-        
-        if (dataItem.hasOwnProperty('ignoreState') && dataItem.ignoreState) {
-            // Skip Properties assignment
-            resultItem.ignoreState = true;
-            global.vLog('\nBlueprint Data Maker: Caught ignored state, skipping data item');
+
+        // Retrieve the corresponding data item
+        // If the item is a jigsaw item, we need to pull the final state data from the blocks
+        if (paletteItem.Name === 'minecraft:jigsaw') {
+            resultItem = getJigsawPreparedStateFromBlocks(i, simplifiedBlocksData);
         } else {
-            resultItem.name = dataItem.text;
+            var dataItem = global.materialsDataMap[paletteItem.Name];
+            if (dataItem.hasOwnProperty('ignoreState') && dataItem.ignoreState) {
+                global.vLog('Blueprint Data Maker: Found ignorable state:');
+                continue;
+            }
+
+            global.vLog(['Blueprint Data Maker: Matching dataItem:', dataItem]);
             
-            assignProperties = paletteItem.hasOwnProperty('Properties')
+            if (dataItem.hasOwnProperty('reference')) {
+                global.vLog('Blueprint Data Maker: Found reference to '+ dataItem.reference);
+                dataItem = global.materialsDataMap[dataItem.reference];
+                global.vLog(['Blueprint Data Maker: Referenced dataItem:', dataItem]);
+            }
+
+            resultItem = { name: dataItem.text, states: [i] };
+            var assignProperties = (
+                (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
                 && dataItem.hasOwnProperty('Properties')
-                && (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
-            ;
-            
+                && paletteItem.hasOwnProperty('Properties')
+            );
+
             if (assignProperties) {
-                
-                global.vLog('\nBlueprint Data Maker: Trying to assign properties for paletteItem...');
-                
-                resultItem.Properties = paletteItem.Properties;
-                
-                j = 0;
-                propKeys = Object.keys(paletteItem.Properties);
-                
-                if (propKeys.length > 0) {
-                    
-                    global.vLog(['\nBlueprint Data Maker: Found properties in paletteItem:', propKeys]);
-                
-                    for (j; j < propKeys.length; j += 1) {
-                        
-                        global.vLog("\nBlueprint Data Maker: Looking up paletteItem property '" + propKeys[j] + "' in dataItem...");
-                    
-                        if (dataItem.Properties.hasOwnProperty(propKeys[j])) {
-                            
-                            global.vLog("Blueprint Data Maker: Found property '" + propKeys[j] + "' in dataItem.");
-                            
-                            propValue = dataItem.Properties[propKeys[j]][paletteItem.Properties[propKeys[j]]];
-                            
-                            resultItem.name = propValue.replace(/\%/g, resultItem.name);
-                            
-                            global.vLog("Blueprint Data Maker: New resultItem name: " + resultItem.name);
-                        } else {
-                            global.vLog("Blueprint Data Maker: dataItem property '" + propKeys[j] + "' not found.");
-                        }
+                global.vLog('Blueprint Data Maker: Found properties data. Trying to assign...');
+                var propKeys = Object.keys(paletteItem.Properties);
+                var j = 0;
+                for (j; j < propKeys.length; j += 1) {
+                    var propKey = propKeys[j];
+                    var propValue = paletteItem.Properties[propKey];
+                    if (dataItem.Properties.hasOwnProperty(propKey) && dataItem.Properties[propKey].hasOwnProperty(propValue)) {
+                        global.vLog('Blueprint Data Maker: Found assignable property value ' + propKey + " -> " + propValue);
+                        resultItem.name = dataItem.Properties[propKey][propValue].replace(/\%/g, dataItem.text);
+                        j = propKeys.length;
                     }
                 }
-            }   
+            }
         }
-        
-        global.vLog(['\nBlueprint Data Maker: Created prepared state object:', resultItem]);
-        result[i] = resultItem;
+
+        if (result.length === 0) {
+            result.push(resultItem);
+        } else {
+            var existing = result.findIndex(function (el) {
+                return el.name === resultItem.name;
+            });
+            if (existing > -1) {
+                result[existing].states.push(i);
+            } else {
+                result.push(resultItem);
+            }
+        }
     }
-    
-    global.vLog(['\nBlueprint Data Maker: PreparedStates:', result]);
+
     return result;
 };
 
@@ -260,32 +183,27 @@ var cleanAndCapitalize = function (filename) {
  * @param {string} filename the name of the structure block file.
  * @returns {objectr} an object containing all information for the blueprint header data
  */
-var getBlueprintVariablesMap = function (filename, preparedStates) {
+var getBlueprintVariablesMap = function (simplifiedData, filename) {
     var variables = getAlphabetAsArray(),
-        preparedStatesKeys = Object.keys(preparedStates),
+        preparedStates = getPreparedStatesFromPaletteAndBlocks(simplifiedData.palette, simplifiedData.blocks),
         i = 0,
-        j = 0,
-        key,
         result = {
             name: 'Village ' + cleanAndCapitalize(filename) + ' ' + filename,
             default: 'Layer 1',
-            variables: {}
+            variables: []
         }
     ;
     
-    if (preparedStatesKeys.length > variables.length) {
+    if (preparedStates.length > variables.length) {
         throw new Error('state count exceeds variables count - please contact developer');
     }
     
-    for (i; i < preparedStatesKeys.length; i += 1) {
-        key = preparedStatesKeys[i];
-        if (!preparedStates[key].hasOwnProperty('ignoreState') || !preparedStates[key].ignoreState) {
-            result.variables[i] = {
-                id: variables[j],
-                name: preparedStates[key].name
-            };
-            j += 1;
-        }
+    for (i; i < preparedStates.length; i += 1) {
+        result.variables.push({
+            key: variables[i],
+            name: preparedStates[i].name,
+            states: preparedStates[i].states
+        });
     }
     
     global.vLog(['\nBlueprint Data Maker: Returning blueprint variables map:', result]);
@@ -298,21 +216,19 @@ module.exports = {
         global.vLog('\nBlueprint Data Maker: Constructing blueprint data...');
         
         var layerCount = simplifiedData.size, // Extract the structure size
-            variables = getAlphabetAsArray(),
-            preparedStates = getPreparedStatesFromPalette(simplifiedData.palette),
             result = {
-                metadata: getBlueprintVariablesMap(filenameWithoutExtension, preparedStates),
+                metadata: getBlueprintVariablesMap(simplifiedData, filenameWithoutExtension),
                 layers: new Array(layerCount[1])
             },
             i = 0,
-            j,
+            j = 0,
             block,
             fill,
-            pos
+            pos,
+            stateIdx
         ;
         
         global.vLog(['\nBlueprint Data Maker: Constructing layers for dimensions:', layerCount]);
-        
         
         // Create the 3-dimensional layers array to store state positions
         for (i; i < layerCount[1]; i += 1) {
@@ -328,7 +244,6 @@ module.exports = {
         global.vLog(['Blueprint Data Maker: Constructed layers:', result.layers]);
         
         i = 0;
-        j = 0;
         
         // Iterate through the blocks and check whether they can be applied to a layer.
         for (i; i < simplifiedData.blocks.length; i += 1) {
@@ -338,25 +253,19 @@ module.exports = {
             
             fill = ' ';
             pos = block.pos;
-            
-            if (block.hasOwnProperty('nbt')) {
-                block.state = getFinalStateFromNbtBlock(block, preparedStates);
-            }
-            
-            block.state = getReferencedStateFromAmbigousBlock(block, preparedStates);
-            
-            if (result.metadata.variables.hasOwnProperty(block.state)) {
-                global.vLog('Found state ' + block.state);
-                fill = result.metadata.variables[block.state].id;
+
+            stateIdx = result.metadata.variables.findIndex(function (el) {
+                return el.states.includes(block.state);
+            });
+
+            if (stateIdx > -1) {
+                fill = result.metadata.variables[stateIdx].key;
             }
             
             result.layers[pos[1]][pos[2]][pos[0]] = fill;
         }
         
         global.vLog(['Blueprint Data Maker: Finished layers:', result.layers]);
-        
-        
-        // TODO: Construct the blueprint data layer by layer
         
         return result;
     }

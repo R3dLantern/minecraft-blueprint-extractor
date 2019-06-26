@@ -20,13 +20,13 @@ module.exports = {
         i = 0;
         
         for (i; i < variablesKeys.length; i += 1) {
-            result += '\n|' + blueprintData.metadata.variables[variablesKeys[i]].id + '=' + blueprintData.metadata.variables[variablesKeys[i]].name;
+            result += '\n|' + blueprintData.metadata.variables[variablesKeys[i]].key + '=' + blueprintData.metadata.variables[variablesKeys[i]].name;
         }
         
         i = 0;
         
         for (i; i < blueprintData.layers.length; i += 1) {
-            result += '\n|----Layer ' + i + '|';
+            result += '\n|----Layer ' + (i + 1) + '|';
             j = 0;
             for (j; j < blueprintData.layers[i].length; j += 1) {
                 result += '\n' + blueprintData.layers[i][j].join('');

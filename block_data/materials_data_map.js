@@ -88,7 +88,7 @@ global.materialsDataMap = {
         text: 'Oak Log',
         Properties: {
             axis: {
-                x: '%',
+                x: '%-rot90',
                 y: '%-top'
             }
         }

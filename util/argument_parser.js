@@ -4,8 +4,8 @@ global.configuration = {
     file: undefined,
     o: "./output.txt",
     output: "./output.txt",
-    s: "./output/simplified-data.json",
-    simplifiedOutput: "./output/simplified-data.json",
+    s: "output/simplified-data.json",
+    simplifiedOutput: "output/simplified-data.json",
     v: false,
     verbose: false
 };
