@@ -2,11 +2,45 @@ global.blockData = {
     "minecraft:air": {
         ignoreState: true
     },
+    "minecraft:cartography_table": {
+        spriteType: 'BlockSprite',
+        internalId: 'cartography-table',
+        link: 'Cartography Table',
+        text: 'Cartography Table'
+    },
+    "minecraft:chest": {
+        spriteType: 'BlockSprite',
+        internalId: 'chest',
+        link: 'Chest',
+        text: 'Chest',
+        Properties: {
+            facing: {
+                north: '%',
+                east: '%-rot90',
+                south: '%-rot180',
+                west: '%-rot270'
+            }
+        }
+    },
     "minecraft:cobblestone": {
         spriteType: 'BlockSprite',
         internalId: 'cobblestone',
         link: 'Cobblestone',
         text: 'Cobblestone'
+    },
+    "minecraft:cobblestone_stairs": {
+        spriteType: 'BlockSprite',
+        internalId: 'cobblestone-stairs',
+        link: 'Stairs',
+        text: 'Cobblestone Stairs',
+        Properties: {
+            facing: {
+                north: '%',
+                east: '%-rot90',
+                south: '%-rot180',
+                west: '%-rot270'
+            }
+        }
     },
     "minecraft:cobblestone_wall": {
         spriteType: 'BlockSprite',
@@ -101,6 +135,13 @@ global.blockData = {
         text: 'Oak Fence',
         ignoreProperties: true
     },
+    "minecraft:oak_fence_gate": {
+        spriteType: 'BlockSprite',
+        internalId: 'oak-fence-gate',
+        link: 'Fence Gate',
+        text: 'Oak Fence Gate',
+        ignoreProperties: true
+    },
     "minecraft:oak_log": {
         spriteType: 'BlockSprite',
         internalId: 'oak-log',
@@ -151,6 +192,20 @@ global.blockData = {
             }
         }
     },
+    "minecraft:oak_trapdoor": {
+        spriteType: 'BlockSprite',
+        internalId: 'oak-trapdoor',
+        link: 'Trapdoor',
+        text: 'Oak Trapdoor',
+        ignoreProperties: true
+    },
+    "minecraft:poppy": {
+        spriteType: 'BlockSprite',
+        internalId: 'poppy',
+        link: 'Flower',
+        text: 'Poppy',
+        ignorieProperties: true
+    },
     "minecraft:potted_dandelion": {
         reference: "minecraft:dandelion"
     },
@@ -185,8 +240,11 @@ global.blockData = {
         link: 'Wood',
         text: 'Stripped Oak Wood'
     },
-    "minecraft:tall_grass": {
+    "minecraft:structure_void": {
         ignoreState: true
+    },
+    "minecraft:tall_grass": {
+        ignoreState: true // TODO: Reconsider
     },
     "minecraft:torch": {
         reference: "minecraft:wall_torch"
@@ -204,6 +262,13 @@ global.blockData = {
                 west: '%-rot270'
             }
         }
+    },
+    "minecraft:water": {
+        spriteType: 'BlockSprite',
+        internalId: 'water',
+        link: 'Water',
+        text: 'Water',
+        ignoreProperties: true
     },
     "minecraft:white_wool": {
         spriteType: 'BlockSprite',

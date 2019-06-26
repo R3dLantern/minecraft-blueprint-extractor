@@ -137,6 +137,8 @@ var getBlueprintVariablesMap = function (simplifiedData, filename) {
     if (preparedStates.length > variables.length) {
         throw new Error('state count exceeds variables count - please contact developer');
     }
+
+    preparedStates.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
     
     for (i; i < preparedStates.length; i += 1) {
         result.variables.push({

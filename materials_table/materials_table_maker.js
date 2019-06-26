@@ -120,6 +120,8 @@ module.exports = {
                 console.log(materials[i].layers);
             }
         }
+
+        materials.sort((a, b) => a.text < b.text ? -1 : a.text > b.text ? 1 : 0);
         
         return { materials: materials, layerCount: layerCount };
     }

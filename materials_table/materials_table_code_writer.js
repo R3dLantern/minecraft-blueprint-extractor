@@ -12,7 +12,7 @@ module.exports = {
      */
     generateTableCode: function (palette, blocks, layerCount) {
         var data = dataMaker.getMaterialsTableData(palette, blocks, layerCount),
-            result = '==== Materials ====\n{|class="wikitable"\n|-\n!Name',
+            result = '==== Materials ====\n{|class="wikitable sortable mw-collapsible"\n|-\n!Name',
             i = 1,
             j
         ;
