@@ -1,54 +1,111 @@
+String.prototype.toInternalId = function() {
+    return this.toLowerCase().replace(' ', '-');
+}
+
+var facingProperties = {
+    north: '%',
+    east: '%-rot90',
+    south: '%-rot180',
+    west: '%-rot270'
+};
+
+var axisProperties = {
+    x: '%-rot90',
+    y: '%-top'
+}
+
+var blockSprite = {
+    spriteType: 'BlockSprite'
+};
+
+var basicBlock = function (name) {
+    return Object.assign(blockSprite, {
+        internalId: name.toInternalId(),
+        link: name,
+        text: name
+    });
+}
+
+var defaultPropertyTopBlockSprite = function (name) {
+    return Object.assign(basicBlock(name), {defaultProperty: '%-top'});
+}
+
+var ignorePropertiesBlock = function (name) {
+    return Object.assign(basicBlock(name), {ignoreProperties: true});
+}
+
+/**
+ * @param {string} text
+ */
+var flowerPot = function (text) {
+    return Object.assign(blockSprite, {
+        internalId: text.toInternalId(),
+        link: 'Flower Pot',
+        text: text
+    });
+};
+
+/**
+ * @param {string} wood 
+ */
+var fence = function (wood) {
+    return {
+        spriteType: 'BlockSprite',
+        internalId: wood.toInternalId() + '-fence',
+        link: 'Fence',
+        text: wood + ' Fence',
+        ignoreProperties: true
+    };
+};
+
+var slab = function (type) {
+    return {
+        spriteType: 'BlockSprite',
+        internalId: type.toInternalId() + '-slab',
+        link: 'Slab',
+        text: type + ' Slab',
+        Properties: {
+            type: {
+                double: 'Double %'
+            }
+        }   
+    }
+}
+
+/**
+ * @param {string} type
+ */
+var wall = function (type) {
+    return {
+        spriteType: 'BlockSprite',
+        internalId: type.toLowerCase() + '-fence',
+        link: 'Wall',
+        text: type + ' Wall',
+        ignoreProperties: true
+    }
+}
+
 global.blockData = {
     "minecraft:air": {
         ignoreState: true
     },
-    "minecraft:cartography_table": {
-        spriteType: 'BlockSprite',
-        internalId: 'cartography-table',
-        link: 'Cartography Table',
-        text: 'Cartography Table'
-    },
+    "minecraft:cartography_table": basicBlock('Cartography Table'),
     "minecraft:chest": {
         spriteType: 'BlockSprite',
         internalId: 'chest',
         link: 'Chest',
         text: 'Chest',
-        Properties: {
-            facing: {
-                north: '%',
-                east: '%-rot90',
-                south: '%-rot180',
-                west: '%-rot270'
-            }
-        }
+        Properties: { facing: facingProperties }
     },
-    "minecraft:cobblestone": {
-        spriteType: 'BlockSprite',
-        internalId: 'cobblestone',
-        link: 'Cobblestone',
-        text: 'Cobblestone'
-    },
+    "minecraft:cobblestone": basicBlock('Cobblestone'),
     "minecraft:cobblestone_stairs": {
         spriteType: 'BlockSprite',
         internalId: 'cobblestone-stairs',
         link: 'Stairs',
         text: 'Cobblestone Stairs',
-        Properties: {
-            facing: {
-                north: '%',
-                east: '%-rot90',
-                south: '%-rot180',
-                west: '%-rot270'
-            }
-        }
+        Properties: { facing: facingProperties }
     },
-    "minecraft:cobblestone_wall": {
-        spriteType: 'BlockSprite',
-        internalId: 'cobblestone-wall',
-        link: 'Wall',
-        text: 'Cobblestone Wall',
-        ignoreProperties: true
-    },
+    "minecraft:cobblestone_wall": wall('Cobblestone'),
     "minecraft:dandelion": {
         spriteType: 'BlockSprite',
         internalId: 'dandelion',
@@ -56,18 +113,8 @@ global.blockData = {
         text: 'Dandelion',
         ignorieProperties: true
     },
-    "minecraft:dirt": {
-        spriteType: 'BlockSprite',
-        internalId: 'dirt',
-        link: 'Dirt',
-        text: 'Dirt'
-    },
-    "minecraft:fletching_table": {
-        spriteType: 'BlockSprite',
-        internalId: 'fletching-table',
-        link: 'Fletching Table',
-        text: 'Fletching Table'
-    },
+    "minecraft:dirt": basicBlock('Dirt'),
+    "minecraft:fletching_table": basicBlock('Fletching Table'),
     "minecraft:glass_pane": {
         spriteType: 'BlockSprite',
         internalId: 'glass-pane',
@@ -83,35 +130,14 @@ global.blockData = {
     "minecraft:grass": {
         ignoreState: true
     },
-    "minecraft:grass_block": {
-        spriteType: 'BlockSprite',
-        internalId: 'grass-block',
-        link: 'Grass Block',
-        text: 'Grass Block',
-        Properties: {
-            snowy: {
-                "false": '%-top'
-            }
-        }
-    },
-    "minecraft:grass_path": {
-        spriteType: 'BlockSprite',
-        internalId: 'grass-path',
-        link: 'Grass Path',
-        text: 'Grass Path',
-        defaultProperty: '%-top'
-    },
+    "minecraft:grass_block": defaultPropertyTopBlockSprite('Grass Block'),
+    "minecraft:grass_path": defaultPropertyTopBlockSprite('Grass Path'),
     "minecraft:hay_block": {
         spriteType: 'BlockSprite',
         internalId: 'hay-block',
-        link: 'Hay_Block',
+        link: 'Hay Block',
         text: 'Hay Block',
-        Properties: {
-            axis: {
-                x: '%',
-                y: '%-top'
-            }
-        }
+        Properties: { axis: axisProperties }
     },
     "minecraft:jigsaw": {
         ignoreState: true
@@ -128,13 +154,7 @@ global.blockData = {
             }
         }
     },
-    "minecraft:oak_fence": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-fence',
-        link: 'Fence',
-        text: 'Oak Fence',
-        ignoreProperties: true
-    },
+    "minecraft:oak_fence": fence('Oak'),
     "minecraft:oak_fence_gate": {
         spriteType: 'BlockSprite',
         internalId: 'oak-fence-gate',
@@ -147,12 +167,7 @@ global.blockData = {
         internalId: 'oak-log',
         link: 'Log',
         text: 'Oak Log',
-        Properties: {
-            axis: {
-                x: '%-rot90',
-                y: '%-top'
-            }
-        }
+        Properties: { axis: axisProperties }
     },
     "minecraft:oak_planks": {
         spriteType: 'BlockSprite',
@@ -167,30 +182,13 @@ global.blockData = {
         text: 'Oak Pressure Plate',
         ignoreProperties: true
     },
-    "minecraft:oak_slab": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-slab',
-        link: 'Slab',
-        text: 'Oak Slab',
-        Properties: {
-            type: {
-                double: 'Double %'
-            }
-        }
-    },
+    "minecraft:oak_slab": slab('Oak'),
     "minecraft:oak_stairs": {
         spriteType: 'BlockSprite',
         internalId: 'oak-stairs',
         link: 'Stairs',
         text: 'Oak Stairs',
-        Properties: {
-            facing: {
-                north: '%',
-                east: '%-rot90',
-                south: '%-rot180',
-                west: '%-rot270'
-            }
-        }
+        Properties: { facing: facingProperties }
     },
     "minecraft:oak_trapdoor": {
         spriteType: 'BlockSprite',
@@ -206,34 +204,15 @@ global.blockData = {
         text: 'Poppy',
         ignorieProperties: true
     },
-    "minecraft:potted_dandelion": {
-        reference: "minecraft:dandelion"
-    },
+    "minecraft:potted_dandelion": flowerPot('Potted Dandelion'),
     "minecraft:smoker": {
         spriteType: 'BlockSprite',
         internalId: 'smoker',
         link: 'Smoker',
         text: 'Smoker',
-        Properties: {
-            facing: {
-                north: '%',
-                east: '%-rot90',
-                south: '%-rot180',
-                west: '%-rot270'
-            }
-        }
+        Properties: { facing: facingProperties }
     },
-    "minecraft:smooth_stone_slab": {
-        spriteType: 'BlockSprite',
-        internalId: 'smooth-stone-slab',
-        link: 'Slab',
-        text: 'Smooth Stone Slab',
-        Properties: {
-            type: {
-                double: 'Double %'
-            }
-        }
-    },
+    "minecraft:smooth_stone_slab": slab('Smooth Stone'),
     "minecraft:stripped_oak_wood": {
         spriteType: 'BlockSprite',
         internalId: 'stripped-oak-wood',
@@ -254,22 +233,9 @@ global.blockData = {
         internalId: 'torch',
         link: 'Torch',
         text: 'Torch',
-        Properties: {
-            facing: {
-                north: '%',
-                east: '%-rot90',
-                south: '%-rot180',
-                west: '%-rot270'
-            }
-        }
+        Properties: { facing: facingProperties }
     },
-    "minecraft:water": {
-        spriteType: 'BlockSprite',
-        internalId: 'water',
-        link: 'Water',
-        text: 'Water',
-        ignoreProperties: true
-    },
+    "minecraft:water": ignorePropertiesBlock('Water'),
     "minecraft:white_wool": {
         spriteType: 'BlockSprite',
         internalId: 'white-wool',
