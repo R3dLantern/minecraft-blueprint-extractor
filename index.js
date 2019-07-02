@@ -81,6 +81,7 @@ function parseFile(fileContents, filenameWithoutExtension) {
     });
 }
 
+console.log('minecraft-blueprint-extractor@0.1.0');
 argsReader.readArgumentsFromCli(require('minimist')(process.argv.slice(2)));
 console.log('Generating code...\n\n');
 fs.readFile(global.configuration.file, function (error, data) {
