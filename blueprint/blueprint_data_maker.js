@@ -39,6 +39,11 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
             resultItem = jigsawDecoder.getJigsawPreparedStateOrDataItemFromBlocks(i, simplifiedBlocksData, true);
         } else {
             var dataItem = global.blockData[paletteItem.Name];
+
+            if (dataItem === undefined) {
+                throw new Error('State not defined in block data. Check the issue tracker for addition of ' + paletteItem.name);
+            }
+
             if (dataItem.hasOwnProperty('ignoreState') && dataItem.ignoreState) {
                 global.vLog('Blueprint Data Maker: Found ignorable state');
                 continue;

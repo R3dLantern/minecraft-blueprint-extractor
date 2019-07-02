@@ -25,6 +25,11 @@ var getMaterialsFromPaletteAndBlocks = function (simplifiedPalette, simplifiedBl
             resultItem = jigsawDecoder.getJigsawPreparedStateOrDataItemFromBlocks(i, simplifiedBlocks, false);
         } else {
             resultItem = global.blockData[paletteItem.Name];
+
+            if (dataItem === undefined) {
+                throw new Error('State not defined in block data. Check the issue tracker for addition of ' + paletteItem.Name);
+            }
+
             if (resultItem.hasOwnProperty('ignoreState') && resultItem.ignoreState) {
                 global.vLog('Materials Data Maker: Found ignorable state');
                 continue;

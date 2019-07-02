@@ -32,6 +32,11 @@ module.exports = {
         if (foundProperties === null) {
             global.vLog('Jigsaw Decoder: No properties data found.');
             dataItem = global.blockData[finalState];
+
+            if (dataItem === undefined) {
+                throw new Error('State not defined in block data. Check the issue tracker for addition of ' + finalState);
+            }
+
             preparedState = { name: dataItem.text, states: [i] };
         } else {
             global.vLog('Jigsaw Decoder: Found properties data - analyzing...');
