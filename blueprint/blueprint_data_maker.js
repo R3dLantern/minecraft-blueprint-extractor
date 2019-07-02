@@ -53,6 +53,11 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
             }
 
             resultItem = { name: dataItem.text, states: [i] };
+
+            if (dataItem.hasOwnProperty('defaultProperty')) {
+                resultItem.name = dataItem.defaultProperty.replace(/\%/g, resultItem.name);
+            }
+
             var assignProperties = (
                 (!dataItem.hasOwnProperty('ignoreProperties') || !dataItem.ignoreProperties)
                 && dataItem.hasOwnProperty('Properties')
@@ -68,12 +73,9 @@ var getPreparedStatesFromPaletteAndBlocks = function (simplifiedPaletteData, sim
                     var propValue = paletteItem.Properties[propKey];
                     if (dataItem.Properties.hasOwnProperty(propKey) && dataItem.Properties[propKey].hasOwnProperty(propValue)) {
                         global.vLog('Blueprint Data Maker: Found assignable property value ' + propKey + " -> " + propValue);
-                        resultItem.name = dataItem.Properties[propKey][propValue].replace(/\%/g, dataItem.text);
-                        j = propKeys.length;
+                        resultItem.name = dataItem.Properties[propKey][propValue].replace(/\%/g, resultItem.name);
                     }
                 }
-            } else if (dataItem.hasOwnProperty('defaultProperty')) {
-                resultItem.name = dataItem.defaultProperty.replace(/\%/g, dataItem.text);
             }
         }
 
