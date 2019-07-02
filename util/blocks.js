@@ -1,5 +1,5 @@
-String.prototype.toInternalId = function () { return this.toLowerCase().replace(' ', '-'); }
-String.prototype.toMinecraftId = function () { return this.toLowerCase().replace(' ', '_'); }
+String.prototype.toInternalId = function () { return this.toLowerCase().replace(/\s/g, '-'); }
+String.prototype.toMinecraftId = function () { return this.toLowerCase().replace(/\s/g, '_'); }
 
 var ignoreStateBlock = { ignoreState: true };
 var base = (name, link) => Object.assign({internalId: name.toInternalId(), link: link, text: name});
@@ -22,8 +22,9 @@ var carpet = (color) => basicBlockOddLink(color + ' Carpet', 'Carpet');
 var door = (type) => Object.assign(basicItemOddLink(type + ' Door', 'Door'), {Properties: {half: {lower: "%-bottom", upper: "%-top"}}});
 var fence = (wood) => ignorePropertiesBlock(basicBlockOddLink(wood + ' Fence', 'Fence'));
 var fence_gate = (wood) => ignorePropertiesBlock(basicBlockOddLink(wood + ' Fence Gate', 'Fence Gate'));
+var glazed_terracotta = (color) => basicBlockOddLink(color + ' Glazed Terracotta', 'Glazed Terracotta');
 var flower = (name) => ignorePropertiesBlock(basicBlockOddLink(name, 'Flower'));
-var flowerPot = (text) => basicBlockOddLink(text, 'Flower Pot');
+var flowerPot = (flower) => basicBlockOddLink('Potted ' + flower, 'Flower Pot');
 var log = (wood) => axisPropertiesBlock(basicBlockOddLink(wood + ' Log', 'Log'));
 var planks = (wood) => basicBlockOddLink(wood + ' Planks', 'Planks');
 var pressure_plate = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Pressure Plate', 'Pressure Plate'));
@@ -31,21 +32,49 @@ var sign = (wood) => ignorePropertiesBlock(basicBlockOddLink(wood + ' Sign', 'Si
 var slab = (type) => Object.assign(basicBlockOddLink(type + ' Slab', 'Slab'), {Properties: {type: {double: 'Double %'}}});
 var stairs = (type) => facingPropertiesBlock(basicBlockOddLink(type + ' Stairs', 'Stairs'));
 var strippedWood = (wood) => basicBlockOddLink('Stripped ' + wood + ' Wood', 'Wood');
+var terracotta = (color) => basicBlockOddLink(color + ' Terracotta', 'Terracotta');
 var trapdoor = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Trapdoor', 'Trapdoor'));
 var wall = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Wall', 'Wall'));
 var wool = (color) => basicBlockOddLink(color + ' Wool', 'Wool');
 var wood = (wood) => basicBlockOddLink(wood + ' Wood', 'Wood');
 
 var colorType = function(color) {
-    var idPrefix = 'minecraft:' + color + '_',
-        typeBlocks = ['Bed', 'Carpet', 'Wool'],
+    var idPrefix = 'minecraft:' + color.toMinecraftId() + '_',
+        typeBlocks = ['Bed', 'Carpet', 'Glazed Terracotta', 'Terracotta', 'Wool'],
         retVal = {},
         i = 0,
         propName
     ;
     for (i; i < typeBlocks.length; i += 1) {
         propName = idPrefix + typeBlocks[i].toMinecraftId();
-        retVal[propName] = eval(typeBlocks[i].toLowerCase() + '(\'' + color + '\')');
+        retVal[propName] = eval(typeBlocks[i].toMinecraftId() + '(\'' + color + '\')');
+    }
+    return retVal;
+}
+var colorTypes = function () {
+    var colors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gray', 'Green', 'Light Blue', 'Light Gray', 'Lime', 'Magenta', 'Orange', 'Pink', 'Purple', 'Red', 'White', 'Yellow'],
+        retVal = {},
+        i = 0;
+    ;
+    for (i; i < colors.length; i += 1) {
+        retVal = Object.assign(retVal, colorType(colors[i]));
+    }
+    return retVal;
+}
+
+var flowersAndPots = function () {
+    var idPrefix = 'minecraft:',
+        names = ['Allium', 'Azure Bluet', 'Blue Orchid', 'Cornflower', 'Dandelion', 'Lilac', 'Lily of the Valley', 'Orange Tulip', 'Oxeye Daisy', 'Pink Tulip', 'Peony', 'Poppy', 'Red Tulip', 'Rose Bush', 'Sunflower', 'White Tulip', 'Wither Rose'],
+        retVal = {},
+        i = 0,
+        flowerPropName,
+        potPropName
+    ;
+    for (i; i < names.length; i += 1) {
+        flowerPropName = idPrefix + names[i].toMinecraftId();
+        potPropName = idPrefix + 'potted_' + names[i].toMinecraftId();
+        retVal[flowerPropName] = flower(names[i]);
+        retVal[potPropName] = flowerPot(names[i]);
     }
     return retVal;
 }
@@ -60,23 +89,26 @@ var woodType = function (woodName) {
     ;
     retVal[strippedWoodProp] = strippedWood(woodName);
     for (i ; i < woodBlocks.length; i += 1) {
-        propName = idPrefix + woodBlocks[i];
+        propName = idPrefix + woodBlocks[i].toMinecraftId();
         retVal[propName] = eval(woodBlocks[i] + '(\'' + woodName + '\')');
+    }
+    return retVal;
+}
+var woodTypes = function () {
+    var woods = ['Acacia', 'Birch', 'Dark Oak', 'Jungle', 'Oak', 'Spruce']
+        retVal = {},
+        i = 0;
+    ;
+    for (i; i < woods.length; i += 1) {
+        retVal = Object.assign(retVal, woodType(woods[i]));
     }
     return retVal;
 }
 
 global.blockData = Object.assign(
-    colorType('Blue'),
-    colorType('Purple'),
-    colorType('Red'),
-    colorType('Yellow'),
-    colorType('White'),
-    woodType('Acacia'),
-    woodType('Oak'),
-    woodType('Spruce'),
-    woodType('Dark Oak'),
-    woodType('Birch'),
+    colorTypes(),
+    flowersAndPots(),
+    woodTypes(),
     {
     "minecraft:air": ignoreStateBlock,
     "minecraft:bell": ignorePropertiesBlock(basicBlock('Bell')),
@@ -84,11 +116,11 @@ global.blockData = Object.assign(
     "minecraft:campfire": basicBlock('Campfire'),
     "minecraft:cartography_table": basicBlockOddLink('Cartography Table'),
     "minecraft:chest": facingPropertiesBlock(basicBlock('Chest')),
+    "minecraft:clay": basicBlockOddLink('Clay', 'Clay (block)'),
     "minecraft:cobblestone": basicBlock('Cobblestone'),
     "minecraft:cobblestone_stairs": stairs('Cobblestone'),
     "minecraft:cobblestone_wall": wall('Cobblestone'),
     "minecraft:crafting_table": basicBlock('Crafting Table'),
-    "minecraft:dandelion": flower('Dandelion'),
     "minecraft:dirt": basicBlock('Dirt'),
     "minecraft:fletching_table": basicBlock('Fletching Table'),
     "minecraft:furnace": facingPropertiesBlock(basicBlock('Furnace')),
@@ -98,8 +130,6 @@ global.blockData = Object.assign(
     "minecraft:grass_path": defaultPropertyTopBlock(basicBlock('Grass Path')),
     "minecraft:hay_block": axisPropertiesBlock(basicBlock('Hay Block')),
     "minecraft:jigsaw": ignoreStateBlock,
-    "minecraft:poppy": flower('Poppy'),
-    "minecraft:potted_dandelion": flowerPot('Potted Dandelion'),
     "minecraft:smoker": facingPropertiesBlock(basicBlock('Smoker')),
     "minecraft:smooth_stone_slab": slab('Smooth Stone'),
     "minecraft:structure_void": ignoreStateBlock,
