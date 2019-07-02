@@ -1,257 +1,69 @@
-String.prototype.toInternalId = function() {
-    return this.toLowerCase().replace(' ', '-');
-}
+String.prototype.toInternalId = () => this.toLowerCase().replace(' ', '-');
 
-var facingProperties = {
-    north: '%',
-    east: '%-rot90',
-    south: '%-rot180',
-    west: '%-rot270'
-};
+var ignoreStateBlock = { ignoreState: true };
+var base = (name, link) => new {internalId: name.toInternalId(), link: link, text: name};
+var basicBlockOddLink = (name, link) => Object.assign({spriteType: 'BlockSprite'}, base(name, link));
+var basicBlock = (name) => basicBlockOddLink(name, name);
+var basicItemOddLink = (name, link) => Object.assign({spriteType: 'ItemSprite', }, base(name, link));
+var basicItem = (name) => basicItemOddLink(name, name);
 
-var axisProperties = {
-    x: '%-rot90',
-    y: '%-top'
-}
+var axisPropertiesBlock = (block) => Object.assign(block, {Properties: {axis: {x: '%-rot90', y: '%-top' }}});
+var defaultPropertyTopBlock = (block) => Object.assign(block, {defaultProperty: '%-top'});
+var facingPropertiesBlock = (block) => Object.assign(block, {Properties: {facing: {north: '%', east: '%-rot90', south: '%-rot180', west: '%-rot270' }}});
+var ignorePropertiesBlock = (block) => Object.assign(block, {ignoreProperties:true});
 
-var blockSprite = {
-    spriteType: 'BlockSprite'
-};
-
-var basicBlock = function (name) {
-    return Object.assign(blockSprite, {
-        internalId: name.toInternalId(),
-        link: name,
-        text: name
-    });
-}
-
-var defaultPropertyTopBlockSprite = function (name) {
-    return Object.assign(basicBlock(name), {defaultProperty: '%-top'});
-}
-
-var ignorePropertiesBlock = function (name) {
-    return Object.assign(basicBlock(name), {ignoreProperties: true});
-}
-
-/**
- * @param {string} text
- */
-var flowerPot = function (text) {
-    return Object.assign(blockSprite, {
-        internalId: text.toInternalId(),
-        link: 'Flower Pot',
-        text: text
-    });
-};
-
-/**
- * @param {string} wood 
- */
-var fence = function (wood) {
-    return {
-        spriteType: 'BlockSprite',
-        internalId: wood.toInternalId() + '-fence',
-        link: 'Fence',
-        text: wood + ' Fence',
-        ignoreProperties: true
-    };
-};
-
-var slab = function (type) {
-    return {
-        spriteType: 'BlockSprite',
-        internalId: type.toInternalId() + '-slab',
-        link: 'Slab',
-        text: type + ' Slab',
-        Properties: {
-            type: {
-                double: 'Double %'
-            }
-        }   
-    }
-}
-
-/**
- * @param {string} type
- */
-var wall = function (type) {
-    return {
-        spriteType: 'BlockSprite',
-        internalId: type.toLowerCase() + '-fence',
-        link: 'Wall',
-        text: type + ' Wall',
-        ignoreProperties: true
-    }
-}
+var carpet = (color) => basicBlockOddLink(color + ' Carpet', 'Carpet');
+var door = (type) => Object.assign(basicItemOddLink(type + ' Door', 'Door'), {Properties: {half: {lower: "%-bottom", upper: "%-top"}}});
+var fence = (wood) => ignorePropertiesBlock(basicBlockOddLink(wood + ' Fence', 'Fence'));
+var fenceGate = (wood) => ignorePropertiesBlock(basicBlockOddLink(wood + ' Fence Gate', 'Fence Gate'));
+var flower = (name) => ignorePropertiesBlock(basicBlockOddLink(name, 'Flower'));
+var flowerPot = (text) => basicBlockOddLink(text, 'Flower Pot');
+var log = (wood) => axisPropertiesBlock(basicBlockOddLink(wood + ' Log', 'Log'));
+var planks = (wood) => basicBlockOddLink(wood + ' Planks', 'Planks');
+var pressurePlate = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Pressure Plate', 'Pressure Plate'));
+var slab = (type) => Object.assign(basicBlockOddLink(type + ' Slab', 'Slab'), {Properties: {type: {double: 'Double %'}}});
+var stairs = (type) => facingPropertiesBlock(basicBlockOddLink(type + ' Stairs', 'Stairs'));
+var strippedWood = (wood) => basicBlockOddLink('Stripped ' + wood + ' Wood', 'Wood');
+var trapdoor = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Trapdoor', 'Trapdoor'));
+var wall = (type) => ignorePropertiesBlock(basicBlockOddLink(type + ' Wall', 'Wall'));
+var wool = (color) => basicBlockOddLink(color + ' Wool', 'Wool');
 
 global.blockData = {
-    "minecraft:air": {
-        ignoreState: true
-    },
-    "minecraft:cartography_table": basicBlock('Cartography Table'),
-    "minecraft:chest": {
-        spriteType: 'BlockSprite',
-        internalId: 'chest',
-        link: 'Chest',
-        text: 'Chest',
-        Properties: { facing: facingProperties }
-    },
+    "minecraft:air": ignoreStateBlock,
+    "minecraft:cartography_table": basicBlockOddLink('Cartography Table'),
+    "minecraft:chest": facingPropertiesBlock(basicBlock('Chest')),
     "minecraft:cobblestone": basicBlock('Cobblestone'),
-    "minecraft:cobblestone_stairs": {
-        spriteType: 'BlockSprite',
-        internalId: 'cobblestone-stairs',
-        link: 'Stairs',
-        text: 'Cobblestone Stairs',
-        Properties: { facing: facingProperties }
-    },
+    "minecraft:cobblestone_stairs": stairs('Cobblestone'),
     "minecraft:cobblestone_wall": wall('Cobblestone'),
-    "minecraft:dandelion": {
-        spriteType: 'BlockSprite',
-        internalId: 'dandelion',
-        link: 'Flower',
-        text: 'Dandelion',
-        ignorieProperties: true
-    },
+    "minecraft:dandelion": flower('Dandelion'),
     "minecraft:dirt": basicBlock('Dirt'),
     "minecraft:fletching_table": basicBlock('Fletching Table'),
-    "minecraft:glass_pane": {
-        spriteType: 'BlockSprite',
-        internalId: 'glass-pane',
-        link: 'Glass Pane',
-        text: 'Glass Pane',
-        Properties: {
-            east: {
-                "true": '%-rot90',
-                "false": '%'
-            }
-        }
-    },
-    "minecraft:grass": {
-        ignoreState: true
-    },
-    "minecraft:grass_block": defaultPropertyTopBlockSprite('Grass Block'),
-    "minecraft:grass_path": defaultPropertyTopBlockSprite('Grass Path'),
-    "minecraft:hay_block": {
-        spriteType: 'BlockSprite',
-        internalId: 'hay-block',
-        link: 'Hay Block',
-        text: 'Hay Block',
-        Properties: { axis: axisProperties }
-    },
-    "minecraft:jigsaw": {
-        ignoreState: true
-    },
-    "minecraft:oak_door": {
-        spriteType: 'ItemSprite',
-        internalId: 'oak-door',
-        link: 'Door',
-        text: 'Oak Door',
-        Properties: {
-            half: {
-                lower: "%-bottom",
-                upper: "%-top"
-            }
-        }
-    },
+    "minecraft:glass_pane": Object.assign(basicBlock('Glass Pane'), {Properties: {east: {'true': '%-rot90', 'false': '%' }}}),
+    "minecraft:grass": ignoreStateBlock,
+    "minecraft:grass_block": defaultPropertyTopBlock(basicBlock('Grass Block')),
+    "minecraft:grass_path": defaultPropertyTopBlock(basicBlock('Grass Path')),
+    "minecraft:hay_block": axisPropertiesBlock(basicBlock('Hay Block')),
+    "minecraft:jigsaw": ignoreStateBlock,
+    "minecraft:oak_door": door('Oak'),
     "minecraft:oak_fence": fence('Oak'),
-    "minecraft:oak_fence_gate": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-fence-gate',
-        link: 'Fence Gate',
-        text: 'Oak Fence Gate',
-        ignoreProperties: true
-    },
-    "minecraft:oak_log": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-log',
-        link: 'Log',
-        text: 'Oak Log',
-        Properties: { axis: axisProperties }
-    },
-    "minecraft:oak_planks": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-planks',
-        link: 'Planks',
-        text: 'Oak Planks'
-    },
-    "minecraft:oak_pressure_plate": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-pressure-plate',
-        link: 'Pressure Plate',
-        text: 'Oak Pressure Plate',
-        ignoreProperties: true
-    },
+    "minecraft:oak_fence_gate": fenceGate('Oak'),
+    "minecraft:oak_log": log('Oak'),
+    "minecraft:oak_planks": planks('Oak'),
+    "minecraft:oak_pressure_plate": pressurePlate('Oak'),
     "minecraft:oak_slab": slab('Oak'),
-    "minecraft:oak_stairs": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-stairs',
-        link: 'Stairs',
-        text: 'Oak Stairs',
-        Properties: { facing: facingProperties }
-    },
-    "minecraft:oak_trapdoor": {
-        spriteType: 'BlockSprite',
-        internalId: 'oak-trapdoor',
-        link: 'Trapdoor',
-        text: 'Oak Trapdoor',
-        ignoreProperties: true
-    },
-    "minecraft:poppy": {
-        spriteType: 'BlockSprite',
-        internalId: 'poppy',
-        link: 'Flower',
-        text: 'Poppy',
-        ignorieProperties: true
-    },
+    "minecraft:oak_stairs": stairs('Oak'),
+    "minecraft:oak_trapdoor": trapdoor('Oak'),
+    "minecraft:poppy": flower('Poppy'),
     "minecraft:potted_dandelion": flowerPot('Potted Dandelion'),
-    "minecraft:smoker": {
-        spriteType: 'BlockSprite',
-        internalId: 'smoker',
-        link: 'Smoker',
-        text: 'Smoker',
-        Properties: { facing: facingProperties }
-    },
+    "minecraft:smoker": facingPropertiesBlock(basicBlock('Smoker')),
     "minecraft:smooth_stone_slab": slab('Smooth Stone'),
-    "minecraft:stripped_oak_wood": {
-        spriteType: 'BlockSprite',
-        internalId: 'stripped-oak-wood',
-        link: 'Wood',
-        text: 'Stripped Oak Wood'
-    },
-    "minecraft:structure_void": {
-        ignoreState: true
-    },
-    "minecraft:tall_grass": {
-        ignoreState: true // TODO: Reconsider
-    },
-    "minecraft:torch": {
-        reference: "minecraft:wall_torch"
-    },
-    "minecraft:wall_torch": {
-        spriteType: 'BlockSprite',
-        internalId: 'torch',
-        link: 'Torch',
-        text: 'Torch',
-        Properties: { facing: facingProperties }
-    },
-    "minecraft:water": ignorePropertiesBlock('Water'),
-    "minecraft:white_wool": {
-        spriteType: 'BlockSprite',
-        internalId: 'white-wool',
-        link: 'Wool',
-        text: 'White Wool'
-    },
-    "minecraft:yellow_carpet": {
-        spriteType: 'BlockSprite',
-        internalId: 'yellow-carpet',
-        link: 'Carpet',
-        text: 'Yellow Carpet'
-    },
-    "minecraft:yellow_wool": {
-        spriteType: 'BlockSprite',
-        internalId: 'yellow-wool',
-        link: 'Wool',
-        text: 'Yellow Wool'
-    }
+    "minecraft:stripped_oak_wood": strippedWood('Oak'),
+    "minecraft:structure_void": ignoreStateBlock,
+    "minecraft:tall_grass": ignoreStateBlock, // TODO: Reconsider
+    "minecraft:torch": { reference: "minecraft:wall_torch" },
+    "minecraft:wall_torch": facingPropertiesBlock(basicBlock('Torch')),
+    "minecraft:water": ignorePropertiesBlock(basicBlock('Water')),
+    "minecraft:white_wool": wool('White'),
+    "minecraft:yellow_carpet": carpet('Yellow'),
+    "minecraft:yellow_wool": wool('Yellow')
 };
